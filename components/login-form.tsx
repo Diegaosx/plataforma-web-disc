@@ -15,21 +15,28 @@ export function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
   const router = useRouter()
   const { toast } = useToast()
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
 
     try {
+      console.log("Tentando login com:", { email, password })
+
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       })
 
+      console.log("Resultado do login:", result)
+
       if (result?.error) {
+        setError("Email ou senha incorretos")
         toast({
           title: "Erro ao fazer login",
           description: "Email ou senha incorretos",
@@ -40,6 +47,8 @@ export function LoginForm() {
         router.refresh()
       }
     } catch (error) {
+      console.error("Erro no login:", error)
+      setError("Ocorreu um erro inesperado. Tente novamente.")
       toast({
         title: "Erro ao fazer login",
         description: "Ocorreu um erro inesperado. Tente novamente.",
@@ -58,6 +67,8 @@ export function LoginForm() {
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
+          {error && <div className="bg-red-50 p-3 rounded-md text-red-700 text-sm">{error}</div>}
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input

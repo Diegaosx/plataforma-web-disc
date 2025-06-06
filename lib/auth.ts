@@ -56,7 +56,8 @@ export const authOptions: NextAuthOptions = {
             {
               id: "mock-admin",
               email: "admin@dezorzi.com",
-              password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // admin123
+              // Hash correto para "admin123"
+              password: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
               name: "Administrador",
               role: "ADMIN" as const,
               companyId: null,
@@ -64,7 +65,8 @@ export const authOptions: NextAuthOptions = {
             {
               id: "mock-consultant",
               email: "consultant@dezorzi.com",
-              password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // consultant123
+              // Hash correto para "consultant123"
+              password: "$2a$10$ILOxAVrJCvv5MWK/XslmH.rrKwLpFzD7G5hPWw5K8tEKHMAXu1jAi",
               name: "Consultor",
               role: "CONSULTANT" as const,
               companyId: null,
@@ -72,7 +74,8 @@ export const authOptions: NextAuthOptions = {
             {
               id: "mock-client",
               email: "client@empresa.com",
-              password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // client123
+              // Hash correto para "client123"
+              password: "$2a$10$DEzK0UZSYe1Pn81.m8JzAOStkqhkDxRJAhKSNl.NHmCIQgKJcRYPO",
               name: "Cliente",
               role: "CLIENT" as const,
               companyId: "mock-company-1",
