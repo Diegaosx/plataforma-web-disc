@@ -13,11 +13,20 @@ const nextConfig = {
     domains: ["placeholder.svg"],
     unoptimized: true,
   },
-  // Adicionar configuração para Prisma
+  // Configuração para resolver conflitos de dependências
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals.push('@prisma/client')
     }
+    
+    // Resolver conflitos de módulos
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    }
+    
     return config
   },
 }
