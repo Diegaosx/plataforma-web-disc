@@ -1,12 +1,78 @@
 import { NextResponse } from "next/server"
-import { generateText } from "ai"
-import { createGroq } from "@ai-sdk/groq"
 
-const groq = createGroq({
-  apiKey: process.env.GROQ_API_KEY,
-})
+// Verificar se a chave GROQ está disponível
+const GROQ_API_KEY = process.env.GROQ_API_KEY
 
-const COMPANY_CONTEXT = `
+// Fallback para quando GROQ não estiver disponível
+const FALLBACK_RESPONSES = {
+  disc: "A metodologia DISC é uma ferramenta de avaliação comportamental que identifica quatro dimensões: Dominância (D), Influência (I), Estabilidade (S) e Conformidade (C). Cada pessoa possui uma combinação única desses perfis.",
+  plataforma:
+    "Nossa plataforma oferece um sistema completo para aplicação de avaliações DISC, com dashboard intuitivo, gestão de candidatos, relatórios automáticos e conformidade total com LGPD.",
+  perfis:
+    "Os quatro perfis DISC são:\n\n🔴 **Dominância (D)**: Foco em resultados e desafios\n🟡 **Influência (I)**: Comunicação e trabalho em equipe\n🟢 **Estabilidade (S)**: Preferência por rotinas e cooperação\n🔵 **Conformidade (C)**: Atenção aos detalhes e qualidade",
+  avaliacao:
+    "O processo de avaliação leva de 15-20 minutos e deve ser realizado em ambiente controlado, preferencialmente no desktop. Enviamos o link por email e o candidato responde às questões comportamentais.",
+  empresa:
+    "A Dezorzi Consultoria é especializada em desenvolvimento humano e organizacional, com foco em avaliações de perfil comportamental DISC. Nossa missão é transformar dados comportamentais em insights estratégicos.",
+  default:
+    "Olá! Sou a assistente da Dezorzi Consultoria. Posso ajudar com informações sobre:\n\n• Metodologia DISC\n• Nossa plataforma\n• Processo de avaliação\n• Perfis comportamentais\n\nO que gostaria de saber?",
+}
+
+function getFallbackResponse(message: string): string {
+  const lowerMessage = message.toLowerCase()
+
+  if (lowerMessage.includes("disc") && (lowerMessage.includes("o que") || lowerMessage.includes("que é"))) {
+    return FALLBACK_RESPONSES.disc
+  }
+
+  if (lowerMessage.includes("plataforma") || lowerMessage.includes("sistema")) {
+    return FALLBACK_RESPONSES.plataforma
+  }
+
+  if (lowerMessage.includes("perfil") || lowerMessage.includes("perfis")) {
+    return FALLBACK_RESPONSES.perfis
+  }
+
+  if (
+    lowerMessage.includes("avaliacao") ||
+    lowerMessage.includes("avaliação") ||
+    lowerMessage.includes("como funciona")
+  ) {
+    return FALLBACK_RESPONSES.avaliacao
+  }
+
+  if (lowerMessage.includes("empresa") || lowerMessage.includes("dezorzi")) {
+    return FALLBACK_RESPONSES.empresa
+  }
+
+  return FALLBACK_RESPONSES.default
+}
+
+export async function POST(req: Request) {
+  try {
+    const { message, history } = await req.json()
+
+    if (!message) {
+      return NextResponse.json({ error: "Mensagem é obrigatória" }, { status: 400 })
+    }
+
+    // Se GROQ não estiver configurado, usar respostas fallback
+    if (!GROQ_API_KEY) {
+      console.log("GROQ_API_KEY não configurada, usando respostas fallback")
+      const fallbackResponse = getFallbackResponse(message)
+      return NextResponse.json({ message: fallbackResponse })
+    }
+
+    // Tentar usar GROQ
+    try {
+      const { generateText } = await import("ai")
+      const { createGroq } = await import("@ai-sdk/groq")
+
+      const groq = createGroq({
+        apiKey: GROQ_API_KEY,
+      })
+
+      const COMPANY_CONTEXT = `
 Você é a assistente virtual da Dezorzi Consultoria, especializada em avaliação de perfil comportamental DISC.
 
 INFORMAÇÕES DA EMPRESA:
@@ -50,19 +116,11 @@ COMO RESPONDER:
 Se perguntarem sobre algo fora do escopo da empresa ou DISC, redirecione educadamente para nossos temas principais.
 `
 
-export async function POST(req: Request) {
-  try {
-    const { message, history } = await req.json()
+      // Construir contexto da conversa
+      const conversationHistory =
+        history?.map((msg: any) => `${msg.role === "user" ? "Usuário" : "Assistente"}: ${msg.content}`).join("\n") || ""
 
-    if (!message) {
-      return NextResponse.json({ error: "Mensagem é obrigatória" }, { status: 400 })
-    }
-
-    // Construir contexto da conversa
-    const conversationHistory =
-      history?.map((msg: any) => `${msg.role === "user" ? "Usuário" : "Assistente"}: ${msg.content}`).join("\n") || ""
-
-    const prompt = `${COMPANY_CONTEXT}
+      const prompt = `${COMPANY_CONTEXT}
 
 HISTÓRICO DA CONVERSA:
 ${conversationHistory}
@@ -71,16 +129,26 @@ NOVA PERGUNTA DO USUÁRIO: ${message}
 
 Responda de forma natural, prestativa e focada nos serviços da Dezorzi Consultoria e metodologia DISC:`
 
-    const { text } = await generateText({
-      model: groq("llama-3.1-70b-versatile"),
-      prompt,
-      maxTokens: 500,
-      temperature: 0.7,
-    })
+      const { text } = await generateText({
+        model: groq("llama-3.1-70b-versatile"),
+        prompt,
+        maxTokens: 500,
+        temperature: 0.7,
+      })
 
-    return NextResponse.json({ message: text })
+      return NextResponse.json({ message: text })
+    } catch (groqError) {
+      console.error("Erro ao usar GROQ, usando fallback:", groqError)
+      const fallbackResponse = getFallbackResponse(message)
+      return NextResponse.json({ message: fallbackResponse })
+    }
   } catch (error) {
-    console.error("Erro na API do chat:", error)
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+    console.error("Erro geral na API do chat:", error)
+
+    // Resposta de erro mais amigável
+    const errorResponse =
+      "Desculpe, estou com dificuldades técnicas no momento. Mas posso ajudar com informações básicas sobre nossa metodologia DISC e plataforma. O que gostaria de saber?"
+
+    return NextResponse.json({ message: errorResponse })
   }
 }

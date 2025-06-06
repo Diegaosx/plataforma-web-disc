@@ -7,11 +7,12 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { ScrollArea } from "../ui/scroll-area"
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
-import { Badge } from "../ui/badge"
+import { Avatar, AvatarFallback } from "../ui/avatar"
 import { ChatSuggestions } from "./chat-suggestions"
-import { MessageCircle, Send, X, Minimize2, Maximize2, Bot, User, Sparkles } from "lucide-react"
+import { ChatStatus } from "./chat-status"
+import { Send, X, Minimize2, Maximize2, User, Sparkles } from "lucide-react"
 import { cn } from "../../lib/utils"
+import Image from "next/image"
 
 interface Message {
   id: string
@@ -81,10 +82,14 @@ export function EnhancedFloatingChat() {
       })
 
       if (!response.ok) {
-        throw new Error("Erro na resposta da API")
+        throw new Error(`Erro HTTP: ${response.status}`)
       }
 
       const data = await response.json()
+
+      if (data.error) {
+        throw new Error(data.error)
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -98,7 +103,8 @@ export function EnhancedFloatingChat() {
       console.error("Erro ao enviar mensagem:", error)
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Desculpe, ocorreu um erro. Tente novamente em alguns instantes. 😔",
+        content:
+          "Desculpe, estou com dificuldades técnicas. Mas posso ajudar com informações básicas sobre DISC! Tente perguntar sobre os perfis comportamentais ou nossa metodologia. 😊",
         role: "assistant",
         timestamp: new Date(),
       }
@@ -122,15 +128,32 @@ export function EnhancedFloatingChat() {
   if (!isOpen) {
     return (
       <div className="fixed bottom-6 right-6 z-50">
+        {/* Texto "Chat Online!" */}
+        <div className="absolute -top-12 right-0 bg-white px-3 py-1 rounded-full shadow-lg border-2 border-blue-200 animate-bounce">
+          <span className="text-sm font-semibold text-blue-700">Chat Online!</span>
+          <div className="absolute bottom-0 right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-white"></div>
+        </div>
+
+        {/* Bubble do Chat com imagem maior */}
         <Button
           onClick={() => setIsOpen(true)}
-          size="lg"
-          className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+          className="h-20 w-20 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 hover:scale-110 p-0 overflow-hidden border-4 border-white"
         >
-          <MessageCircle className="h-6 w-6" />
+          <div className="relative w-full h-full flex items-center justify-center">
+            <Image
+              src="/images/chatbot-avatar.png"
+              alt="Assistente Virtual"
+              width={64}
+              height={64}
+              className="object-contain"
+              priority
+            />
+          </div>
         </Button>
-        <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full animate-pulse flex items-center justify-center">
-          <Sparkles className="h-2 w-2 text-white" />
+
+        {/* Indicador de status online */}
+        <div className="absolute -top-1 -right-1 h-6 w-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center animate-pulse">
+          <Sparkles className="h-3 w-3 text-white" />
         </div>
       </div>
     )
@@ -141,11 +164,17 @@ export function EnhancedFloatingChat() {
       <Card className={cn("w-80 shadow-2xl transition-all duration-300 border-0", isMinimized ? "h-14" : "h-[500px]")}>
         <CardHeader className="pb-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8 border-2 border-white/20">
-                <AvatarImage src="/placeholder.svg" alt="Assistente" />
-                <AvatarFallback className="bg-white text-blue-600 font-bold">AI</AvatarFallback>
-              </Avatar>
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Image
+                  src="/images/chatbot-avatar.png"
+                  alt="Assistente Virtual"
+                  width={40}
+                  height={40}
+                  className="rounded-full border-2 border-white/30"
+                />
+                <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-400 rounded-full border border-white animate-pulse" />
+              </div>
               <div>
                 <CardTitle className="text-sm font-semibold">Assistente Dezorzi</CardTitle>
                 <div className="flex items-center space-x-1">
@@ -192,11 +221,15 @@ export function EnhancedFloatingChat() {
                     )}
                   >
                     {message.role === "assistant" && (
-                      <Avatar className="h-6 w-6 mt-1">
-                        <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                          <Bot className="h-3 w-3" />
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Image
+                          src="/images/chatbot-avatar.png"
+                          alt="Assistente"
+                          width={24}
+                          height={24}
+                          className="rounded-full mt-1"
+                        />
+                      </div>
                     )}
                     <div
                       className={cn(
@@ -231,11 +264,13 @@ export function EnhancedFloatingChat() {
 
                 {isLoading && (
                   <div className="flex items-start space-x-2">
-                    <Avatar className="h-6 w-6 mt-1">
-                      <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                        <Bot className="h-3 w-3" />
-                      </AvatarFallback>
-                    </Avatar>
+                    <Image
+                      src="/images/chatbot-avatar.png"
+                      alt="Assistente"
+                      width={24}
+                      height={24}
+                      className="rounded-full mt-1"
+                    />
                     <div className="bg-gray-50 border rounded-lg px-3 py-2">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" />
@@ -276,12 +311,7 @@ export function EnhancedFloatingChat() {
                 </Button>
               </div>
               <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center space-x-1">
-                  <Badge variant="outline" className="text-xs border-blue-200 text-blue-700">
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    IA Especializada
-                  </Badge>
-                </div>
+                <ChatStatus />
                 <p className="text-xs text-gray-500">Enter para enviar</p>
               </div>
             </div>
