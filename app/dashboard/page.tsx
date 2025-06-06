@@ -13,7 +13,6 @@ export default async function DashboardPage() {
   let recentCandidates: any[] = []
 
   try {
-    // Tentar importar Prisma dinamicamente
     const { prisma } = await import("../../lib/prisma")
 
     candidatesCount = await prisma.candidate.count()
@@ -31,7 +30,6 @@ export default async function DashboardPage() {
   } catch (error) {
     console.error("Database error, using fallback data:", error)
 
-    // Usar dados mock em caso de erro
     const mockCandidates = getMockData("candidates")
     candidatesCount = mockCandidates.length
     pendingCount = mockCandidates.filter((c) => c.status === "PENDING").length
@@ -41,7 +39,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <div className="text-sm text-muted-foreground">Bem-vindo, {session?.user?.name || "Usuário"}!</div>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card>

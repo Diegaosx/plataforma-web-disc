@@ -4,10 +4,14 @@ import { authOptions } from "../lib/auth"
 import { LandingPage } from "../components/landing-page"
 
 export default async function Home() {
-  const session = await getServerSession(authOptions)
+  try {
+    const session = await getServerSession(authOptions)
 
-  if (session) {
-    redirect("/dashboard")
+    if (session) {
+      redirect("/dashboard")
+    }
+  } catch (error) {
+    console.error("Session error:", error)
   }
 
   return <LandingPage />

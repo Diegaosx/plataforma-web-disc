@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Importar Prisma dinamicamente
+          // Tentar conectar com o banco
           const { prisma } = await import("./prisma")
 
           const user = await prisma.user.findUnique({
@@ -51,38 +51,44 @@ export const authOptions: NextAuthOptions = {
         } catch (error) {
           console.error("Auth error:", error)
 
-          // Fallback para usuários mock em desenvolvimento
-          if (process.env.NODE_ENV === "development") {
-            const mockUsers = [
-              {
-                id: "mock-admin",
-                email: "admin@dezorzi.com",
-                password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // admin123
-                name: "Administrador",
-                role: "ADMIN" as const,
-                companyId: null,
-              },
-              {
-                id: "mock-consultant",
-                email: "consultant@dezorzi.com",
-                password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // consultant123
-                name: "Consultor",
-                role: "CONSULTANT" as const,
-                companyId: null,
-              },
-            ]
+          // Fallback para usuários mock
+          const mockUsers = [
+            {
+              id: "mock-admin",
+              email: "admin@dezorzi.com",
+              password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // admin123
+              name: "Administrador",
+              role: "ADMIN" as const,
+              companyId: null,
+            },
+            {
+              id: "mock-consultant",
+              email: "consultant@dezorzi.com",
+              password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // consultant123
+              name: "Consultor",
+              role: "CONSULTANT" as const,
+              companyId: null,
+            },
+            {
+              id: "mock-client",
+              email: "client@empresa.com",
+              password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // client123
+              name: "Cliente",
+              role: "CLIENT" as const,
+              companyId: "mock-company-1",
+            },
+          ]
 
-            const mockUser = mockUsers.find((u) => u.email === credentials.email)
-            if (mockUser) {
-              const isPasswordValid = await bcrypt.compare(credentials.password, mockUser.password)
-              if (isPasswordValid) {
-                return {
-                  id: mockUser.id,
-                  email: mockUser.email,
-                  name: mockUser.name,
-                  role: mockUser.role,
-                  companyId: mockUser.companyId,
-                }
+          const mockUser = mockUsers.find((u) => u.email === credentials.email)
+          if (mockUser) {
+            const isPasswordValid = await bcrypt.compare(credentials.password, mockUser.password)
+            if (isPasswordValid) {
+              return {
+                id: mockUser.id,
+                email: mockUser.email,
+                name: mockUser.name,
+                role: mockUser.role,
+                companyId: mockUser.companyId,
               }
             }
           }

@@ -4,10 +4,14 @@ import { authOptions } from "../../lib/auth"
 import { LoginForm } from "../../components/login-form"
 
 export default async function LoginPage() {
-  const session = await getServerSession(authOptions)
+  try {
+    const session = await getServerSession(authOptions)
 
-  if (session) {
-    redirect("/dashboard")
+    if (session) {
+      redirect("/dashboard")
+    }
+  } catch (error) {
+    console.error("Session error:", error)
   }
 
   return (
