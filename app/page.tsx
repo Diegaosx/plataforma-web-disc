@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../lib/auth"
-import { LandingPage } from "../components/landing-page"
 
 export default async function Home() {
   try {
@@ -14,5 +13,6 @@ export default async function Home() {
     console.error("Session error:", error)
   }
 
-  return <LandingPage />
+  // Redirecionar diretamente para login
+  redirect("/login")
 }
