@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "../../lib/utils"
-import { BarChart3, Users, Building, FileText, Settings, Mail, FolderKanban, Home } from "lucide-react"
+import { Users, Building, FileText, Settings, Mail, FolderKanban, Home, TrendingUp } from "lucide-react"
 import type { Role } from "@prisma/client"
 
 interface SidebarProps {
@@ -53,7 +53,7 @@ export function DashboardSidebar({ userRole }: SidebarProps) {
     {
       title: "Análises",
       href: "/dashboard/analytics",
-      icon: BarChart3,
+      icon: TrendingUp,
       roles: ["ADMIN", "CONSULTANT"],
     },
     {
@@ -67,11 +67,13 @@ export function DashboardSidebar({ userRole }: SidebarProps) {
   const filteredNavItems = navItems.filter((item) => item.roles.includes(userRole))
 
   return (
-    <aside className="w-64 border-r bg-white hidden md:block">
-      <div className="h-16 border-b flex items-center px-6">
+    <aside className="w-64 border-r bg-white hidden md:block shadow-sm">
+      <div className="h-16 border-b flex items-center px-6 bg-gradient-to-r from-blue-600 to-blue-700">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-white font-bold">D</div>
-          <span className="font-semibold">Dezorzi</span>
+          <div className="w-8 h-8 rounded bg-white flex items-center justify-center text-blue-600 font-bold shadow-sm">
+            D
+          </div>
+          <span className="font-semibold text-white">Dezorzi DISC</span>
         </Link>
       </div>
       <nav className="p-4 space-y-1">
@@ -80,13 +82,13 @@ export function DashboardSidebar({ userRole }: SidebarProps) {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all hover:bg-gray-100",
               pathname === item.href
-                ? "bg-gray-100 text-gray-900 font-medium"
-                : "text-gray-500 hover:bg-gray-100 hover:text-gray-900",
+                ? "bg-blue-50 text-blue-700 font-medium border-r-2 border-blue-600"
+                : "text-gray-600 hover:text-gray-900",
             )}
           >
-            <item.icon className="h-4 w-4" />
+            <item.icon className={cn("h-4 w-4", pathname === item.href ? "text-blue-600" : "text-gray-400")} />
             {item.title}
           </Link>
         ))}
