@@ -32,7 +32,7 @@ export const authOptions: NextAuthOptions = {
           })
 
           if (!user || !user.password) {
-            return null
+            throw new Error("Usuário não encontrado")
           }
 
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password)

@@ -1,5 +1,7 @@
 {
-  "buildCommand": "npm install --legacy-peer-deps && npx prisma generate && next build",
+  "installCommand": "npm install",
+  "buildCommand": "npx prisma generate && next build",
+  "framework": "nextjs",
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
