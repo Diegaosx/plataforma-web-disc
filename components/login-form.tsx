@@ -10,7 +10,8 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { useToast } from "./ui/use-toast"
-import { User, KeyRound } from "lucide-react"
+import { User, KeyRound, Database } from "lucide-react"
+import Link from "next/link"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -26,7 +27,7 @@ export function LoginForm() {
     setError("")
 
     try {
-      console.log("Tentando login com:", { email, password })
+      console.log("🔍 Tentando login com:", { email, password })
 
       const result = await signIn("credentials", {
         email,
@@ -34,25 +35,29 @@ export function LoginForm() {
         redirect: false,
       })
 
-      console.log("Resultado do login:", result)
+      console.log("📋 Resultado do login:", result)
 
       if (result?.error) {
-        setError("Email ou senha incorretos")
+        const errorMsg = "Email ou senha incorretos"
+        setError(errorMsg)
+        console.log("❌ Erro no login:", result.error)
         toast({
           title: "Erro ao fazer login",
-          description: "Email ou senha incorretos",
+          description: errorMsg,
           variant: "destructive",
         })
       } else {
+        console.log("✅ Login bem-sucedido, redirecionando...")
         router.push("/dashboard")
         router.refresh()
       }
     } catch (error) {
-      console.error("Erro no login:", error)
-      setError("Ocorreu um erro inesperado. Tente novamente.")
+      console.error("💥 Erro no login:", error)
+      const errorMsg = "Ocorreu um erro inesperado. Tente novamente."
+      setError(errorMsg)
       toast({
         title: "Erro ao fazer login",
-        description: "Ocorreu um erro inesperado. Tente novamente.",
+        description: errorMsg,
         variant: "destructive",
       })
     } finally {
@@ -64,76 +69,94 @@ export function LoginForm() {
   const fillLoginData = (demoEmail: string, demoPassword: string) => {
     setEmail(demoEmail)
     setPassword(demoPassword)
+    setError("") // Limpar erro anterior
   }
 
   // Lista de usuários de demonstração
   const demoUsers = [
-    { email: "admin@dezorzi.com", password: "admin123", role: "Administrador" },
-    { email: "consultant@dezorzi.com", password: "consultant123", role: "Consultor" },
-    { email: "client@empresa.com", password: "client123", role: "Cliente" },
+    { email: "admin@dezorzi.com", password: "admin123", role: "Administrador", color: "bg-red-50 border-red-200" },
+    {
+      email: "consultant@dezorzi.com",
+      password: "consultant123",
+      role: "Consultor",
+      color: "bg-blue-50 border-blue-200",
+    },
+    { email: "client@empresa.com", password: "client123", role: "Cliente", color: "bg-green-50 border-green-200" },
   ]
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Login</CardTitle>
-        <CardDescription>Acesse a plataforma DISC da Dezorzi Consultoria</CardDescription>
-      </CardHeader>
-      <form onSubmit={onSubmit}>
-        <CardContent className="space-y-4">
-          {error && <div className="bg-red-50 p-3 rounded-md text-red-700 text-sm">{error}</div>}
+    <div className="space-y-4">
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Login</CardTitle>
+          <CardDescription>Acesse a plataforma DISC da Dezorzi Consultoria</CardDescription>
+        </CardHeader>
+        <form onSubmit={onSubmit}>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="bg-red-50 p-3 rounded-md text-red-700 text-sm border border-red-200">{error}</div>
+            )}
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="admin@dezorzi.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="admin123"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="bg-blue-50 p-4 rounded-md">
-            <p className="font-medium mb-3 text-sm flex items-center">
-              <KeyRound className="h-4 w-4 mr-1" /> Login rápido (clique para preencher):
-            </p>
             <div className="space-y-2">
-              {demoUsers.map((user, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => fillLoginData(user.email, user.password)}
-                  className="w-full flex items-center justify-between p-2 text-sm bg-white hover:bg-gray-50 border rounded-md transition-colors"
-                >
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2 text-blue-600" />
-                    <span className="font-medium">{user.role}</span>
-                  </div>
-                  <span className="text-gray-500 text-xs">{user.email}</span>
-                </button>
-              ))}
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@dezorzi.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Entrando..." : "Entrar"}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="admin123"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
+              <p className="font-medium mb-3 text-sm flex items-center">
+                <KeyRound className="h-4 w-4 mr-1" /> Login rápido (clique para preencher):
+              </p>
+              <div className="space-y-2">
+                {demoUsers.map((user, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => fillLoginData(user.email, user.password)}
+                    className={`w-full flex items-center justify-between p-3 text-sm hover:bg-white border-2 rounded-md transition-all hover:shadow-sm ${user.color}`}
+                  >
+                    <div className="flex items-center">
+                      <User className="h-4 w-4 mr-2 text-blue-600" />
+                      <span className="font-medium">{user.role}</span>
+                    </div>
+                    <span className="text-gray-600 text-xs">{user.email}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Entrando..." : "Entrar"}
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
+
+      {/* Link para teste de banco */}
+      <div className="text-center">
+        <Link href="/test-db" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 underline">
+          <Database className="h-4 w-4 mr-1" />
+          Testar Conexão com Banco de Dados
+        </Link>
+      </div>
+    </div>
   )
 }

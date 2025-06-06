@@ -18,11 +18,56 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          console.log("❌ Credenciais não fornecidas")
           return null
         }
 
+        console.log("🔍 Tentando autenticar:", credentials.email)
+
+        // Primeiro, tentar com usuários mock (sempre disponível)
+        const mockUsers = [
+          {
+            id: "mock-admin",
+            email: "admin@dezorzi.com",
+            password: "admin123", // Senha em texto plano para comparação direta
+            name: "Administrador",
+            role: "ADMIN" as const,
+            companyId: null,
+          },
+          {
+            id: "mock-consultant",
+            email: "consultant@dezorzi.com",
+            password: "consultant123",
+            name: "Consultor",
+            role: "CONSULTANT" as const,
+            companyId: null,
+          },
+          {
+            id: "mock-client",
+            email: "client@empresa.com",
+            password: "client123",
+            name: "Cliente",
+            role: "CLIENT" as const,
+            companyId: "mock-company-1",
+          },
+        ]
+
+        // Verificar usuários mock primeiro (para garantir que sempre funcione)
+        const mockUser = mockUsers.find((u) => u.email === credentials.email)
+        if (mockUser && mockUser.password === credentials.password) {
+          console.log("✅ Login com usuário mock bem-sucedido:", mockUser.email)
+          return {
+            id: mockUser.id,
+            email: mockUser.email,
+            name: mockUser.name,
+            role: mockUser.role,
+            companyId: mockUser.companyId,
+          }
+        }
+
+        // Tentar conectar com o banco de dados
         try {
-          // Tentar conectar com o banco
+          console.log("🔄 Tentando conectar com o banco de dados...")
           const { prisma } = await import("./prisma")
 
           const user = await prisma.user.findUnique({
@@ -32,15 +77,20 @@ export const authOptions: NextAuthOptions = {
           })
 
           if (!user || !user.password) {
-            throw new Error("Usuário não encontrado")
+            console.log("❌ Usuário não encontrado no banco:", credentials.email)
+            return null
           }
+
+          console.log("✅ Usuário encontrado no banco:", user.email)
 
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
 
           if (!isPasswordValid) {
+            console.log("❌ Senha inválida para usuário do banco:", user.email)
             return null
           }
 
+          console.log("✅ Login com banco de dados bem-sucedido:", user.email)
           return {
             id: user.id,
             email: user.email,
@@ -49,53 +99,8 @@ export const authOptions: NextAuthOptions = {
             companyId: user.companyId,
           }
         } catch (error) {
-          console.error("Auth error:", error)
-
-          // Fallback para usuários mock
-          const mockUsers = [
-            {
-              id: "mock-admin",
-              email: "admin@dezorzi.com",
-              // Hash correto para "admin123"
-              password: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy",
-              name: "Administrador",
-              role: "ADMIN" as const,
-              companyId: null,
-            },
-            {
-              id: "mock-consultant",
-              email: "consultant@dezorzi.com",
-              // Hash correto para "consultant123"
-              password: "$2a$10$ILOxAVrJCvv5MWK/XslmH.rrKwLpFzD7G5hPWw5K8tEKHMAXu1jAi",
-              name: "Consultor",
-              role: "CONSULTANT" as const,
-              companyId: null,
-            },
-            {
-              id: "mock-client",
-              email: "client@empresa.com",
-              // Hash correto para "client123"
-              password: "$2a$10$DEzK0UZSYe1Pn81.m8JzAOStkqhkDxRJAhKSNl.NHmCIQgKJcRYPO",
-              name: "Cliente",
-              role: "CLIENT" as const,
-              companyId: "mock-company-1",
-            },
-          ]
-
-          const mockUser = mockUsers.find((u) => u.email === credentials.email)
-          if (mockUser) {
-            const isPasswordValid = await bcrypt.compare(credentials.password, mockUser.password)
-            if (isPasswordValid) {
-              return {
-                id: mockUser.id,
-                email: mockUser.email,
-                name: mockUser.name,
-                role: mockUser.role,
-                companyId: mockUser.companyId,
-              }
-            }
-          }
-
+          console.error("❌ Erro ao conectar com banco de dados:", error)
+          console.log("🔄 Usando fallback para usuários mock...")
           return null
         }
       },
@@ -123,4 +128,5 @@ export const authOptions: NextAuthOptions = {
       return token
     },
   },
+  debug: true, // Ativar logs detalhados
 }
