@@ -1,6 +1,33 @@
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import bcrypt from "bcryptjs"
+
+// Usuários fixos para EasyPanel (sem dependência de banco)
+const EASYPANEL_USERS = [
+  {
+    id: "easypanel-admin",
+    email: "admin@dezorzi.com",
+    password: "admin123",
+    name: "Administrador",
+    role: "ADMIN" as const,
+    companyId: null,
+  },
+  {
+    id: "easypanel-consultant",
+    email: "consultant@dezorzi.com",
+    password: "consultant123",
+    name: "Consultor",
+    role: "CONSULTANT" as const,
+    companyId: null,
+  },
+  {
+    id: "easypanel-client",
+    email: "client@empresa.com",
+    password: "client123",
+    name: "Cliente",
+    role: "CLIENT" as const,
+    companyId: "company-1",
+  },
+]
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -24,73 +51,11 @@ export const authOptions: NextAuthOptions = {
 
         console.log("🔍 Tentando autenticar:", credentials.email)
 
-        // Primeiro, tentar com usuários mock (sempre disponível)
-        const mockUsers = [
-          {
-            id: "mock-admin",
-            email: "admin@dezorzi.com",
-            password: "admin123", // Senha em texto plano para comparação direta
-            name: "Administrador",
-            role: "ADMIN" as const,
-            companyId: null,
-          },
-          {
-            id: "mock-consultant",
-            email: "consultant@dezorzi.com",
-            password: "consultant123",
-            name: "Consultor",
-            role: "CONSULTANT" as const,
-            companyId: null,
-          },
-          {
-            id: "mock-client",
-            email: "client@empresa.com",
-            password: "client123",
-            name: "Cliente",
-            role: "CLIENT" as const,
-            companyId: "mock-company-1",
-          },
-        ]
+        // Verificar usuários do EasyPanel (sempre disponível)
+        const user = EASYPANEL_USERS.find((u) => u.email === credentials.email && u.password === credentials.password)
 
-        // Verificar usuários mock primeiro (para garantir que sempre funcione)
-        const mockUser = mockUsers.find((u) => u.email === credentials.email)
-        if (mockUser && mockUser.password === credentials.password) {
-          console.log("✅ Login com usuário mock bem-sucedido:", mockUser.email)
-          return {
-            id: mockUser.id,
-            email: mockUser.email,
-            name: mockUser.name,
-            role: mockUser.role,
-            companyId: mockUser.companyId,
-          }
-        }
-
-        // Tentar conectar com o banco de dados
-        try {
-          console.log("🔄 Tentando conectar com o banco de dados...")
-          const { prisma } = await import("./prisma")
-
-          const user = await prisma.user.findUnique({
-            where: {
-              email: credentials.email,
-            },
-          })
-
-          if (!user || !user.password) {
-            console.log("❌ Usuário não encontrado no banco:", credentials.email)
-            return null
-          }
-
-          console.log("✅ Usuário encontrado no banco:", user.email)
-
-          const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
-
-          if (!isPasswordValid) {
-            console.log("❌ Senha inválida para usuário do banco:", user.email)
-            return null
-          }
-
-          console.log("✅ Login com banco de dados bem-sucedido:", user.email)
+        if (user) {
+          console.log("✅ Login bem-sucedido com usuário EasyPanel:", user.email)
           return {
             id: user.id,
             email: user.email,
@@ -98,11 +63,10 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
             companyId: user.companyId,
           }
-        } catch (error) {
-          console.error("❌ Erro ao conectar com banco de dados:", error)
-          console.log("🔄 Usando fallback para usuários mock...")
-          return null
         }
+
+        console.log("❌ Credenciais inválidas para:", credentials.email)
+        return null
       },
     }),
   ],
@@ -128,5 +92,5 @@ export const authOptions: NextAuthOptions = {
       return token
     },
   },
-  debug: true, // Ativar logs detalhados
+  debug: false, // Desativar logs em produção
 }

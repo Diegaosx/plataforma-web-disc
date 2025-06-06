@@ -10,8 +10,7 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { useToast } from "./ui/use-toast"
-import { User, KeyRound, Database } from "lucide-react"
-import Link from "next/link"
+import { User, KeyRound } from "lucide-react"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -149,14 +148,6 @@ export function LoginForm() {
           </CardFooter>
         </form>
       </Card>
-
-      {/* Link para teste de banco */}
-      <div className="text-center">
-        <Link href="/test-db" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 underline">
-          <Database className="h-4 w-4 mr-1" />
-          Testar Conexão com Banco de Dados
-        </Link>
-      </div>
     </div>
   )
 }

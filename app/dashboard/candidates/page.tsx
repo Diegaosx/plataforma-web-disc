@@ -5,17 +5,8 @@ import { Plus } from "lucide-react"
 import { getMockData } from "../../../lib/db-fallback"
 
 export default async function CandidatesPage() {
-  let candidates: any[] = []
-
-  try {
-    const { prisma } = await import("../../../lib/prisma")
-    candidates = await prisma.candidate.findMany({
-      orderBy: { createdAt: "desc" },
-    })
-  } catch (error) {
-    console.error("Database error, using fallback data:", error)
-    candidates = getMockData("candidates")
-  }
+  // Usar sempre dados mock no EasyPanel
+  const candidates = getMockData("candidates")
 
   return (
     <div className="space-y-6">

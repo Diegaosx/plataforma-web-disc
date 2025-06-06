@@ -7,35 +7,12 @@ import { getMockData } from "../../lib/db-fallback"
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
 
-  let candidatesCount = 0
-  let pendingCount = 0
-  let completedCount = 0
-  let recentCandidates: any[] = []
-
-  try {
-    const { prisma } = await import("../../lib/prisma")
-
-    candidatesCount = await prisma.candidate.count()
-    pendingCount = await prisma.candidate.count({
-      where: { status: "PENDING" },
-    })
-    completedCount = await prisma.candidate.count({
-      where: { status: "COMPLETED" },
-    })
-
-    recentCandidates = await prisma.candidate.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    })
-  } catch (error) {
-    console.error("Database error, using fallback data:", error)
-
-    const mockCandidates = getMockData("candidates")
-    candidatesCount = mockCandidates.length
-    pendingCount = mockCandidates.filter((c) => c.status === "PENDING").length
-    completedCount = mockCandidates.filter((c) => c.status === "COMPLETED").length
-    recentCandidates = mockCandidates
-  }
+  // Usar sempre dados mock no EasyPanel
+  const mockCandidates = getMockData("candidates")
+  const candidatesCount = mockCandidates.length
+  const pendingCount = mockCandidates.filter((c) => c.status === "PENDING").length
+  const completedCount = mockCandidates.filter((c) => c.status === "COMPLETED").length
+  const recentCandidates = mockCandidates.slice(0, 5)
 
   return (
     <div className="space-y-6">
