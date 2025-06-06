@@ -10,6 +10,7 @@ import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { useToast } from "./ui/use-toast"
+import { User, KeyRound } from "lucide-react"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -59,6 +60,19 @@ export function LoginForm() {
     }
   }
 
+  // Função para preencher automaticamente os dados de login
+  const fillLoginData = (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail)
+    setPassword(demoPassword)
+  }
+
+  // Lista de usuários de demonstração
+  const demoUsers = [
+    { email: "admin@dezorzi.com", password: "admin123", role: "Administrador" },
+    { email: "consultant@dezorzi.com", password: "consultant123", role: "Consultor" },
+    { email: "client@empresa.com", password: "client123", role: "Cliente" },
+  ]
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -91,10 +105,27 @@ export function LoginForm() {
               required
             />
           </div>
-          <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-md">
-            <p className="font-medium mb-1">Usuários de demonstração:</p>
-            <p>• admin@dezorzi.com / admin123</p>
-            <p>• consultant@dezorzi.com / consultant123</p>
+
+          <div className="bg-blue-50 p-4 rounded-md">
+            <p className="font-medium mb-3 text-sm flex items-center">
+              <KeyRound className="h-4 w-4 mr-1" /> Login rápido (clique para preencher):
+            </p>
+            <div className="space-y-2">
+              {demoUsers.map((user, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => fillLoginData(user.email, user.password)}
+                  className="w-full flex items-center justify-between p-2 text-sm bg-white hover:bg-gray-50 border rounded-md transition-colors"
+                >
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-2 text-blue-600" />
+                    <span className="font-medium">{user.role}</span>
+                  </div>
+                  <span className="text-gray-500 text-xs">{user.email}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </CardContent>
         <CardFooter>
