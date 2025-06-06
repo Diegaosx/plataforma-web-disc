@@ -13,6 +13,13 @@ const nextConfig = {
     domains: ["placeholder.svg"],
     unoptimized: true,
   },
+  // Adicionar configuração para Prisma
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push('@prisma/client')
+    }
+    return config
+  },
 }
 
 export default nextConfig
